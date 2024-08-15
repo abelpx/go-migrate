@@ -21,7 +21,6 @@ func NewDriver(username, password, host string, port int, dbName string) {
 	once.Do(func() {
 		// 拼接 dsn, 由调用方项目进行传入数据库相关配置
 		dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", username, password, host, port, dbName)
-		fmt.Println(dsn)
 		db, err := sqlx.Connect("mysql", dsn)
 
 		if err != nil {

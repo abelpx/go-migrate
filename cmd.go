@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/abelpx/go-migrate/pkg/interfaces"
+	"github.com/jmoiron/sqlx"
 	"log"
 	"os"
 	"path/filepath"
@@ -69,6 +70,7 @@ func init() {
 		Use:   "run",
 		Short: "迁移进入数据库。",
 		PreRun: func(cmd *cobra.Command, args []string) {
+			checkDatabase()
 			initializeDriver()
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -276,7 +278,6 @@ func rollback() error {
 
 // 往数据库里执行创建表的操作
 func run() error {
-	checkDatabase()
 	return runMysql()
 }
 
@@ -285,11 +286,14 @@ func run() error {
 func checkDatabase() {
 	// 初始化数据库
 	sql := fmt.Sprintf(`CREATE DATABASE IF NOT EXISTS %s DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;`, Config.DbName)
-	driver := mysql.GetDriver()
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", Config.Username, Config.Password, Config.Host, Config.Port, Config.DbName)
+	db, err := sqlx.Connect("mysql", dsn)
 
-	if _, err := driver.Execute(sql); err != nil && strings.Contains(err.Error(), "Unknown database") {
+	if err != nil && strings.Contains(err.Error(), "Unknown database") {
 		// 创建指定数据库
-		if _, err = driver.Execute(sql); err != nil {
+		db, err = sqlx.Connect("mysql", fmt.Sprintf("%s:%s@tcp(%s:%d)/mysql",
+			Config.Username, Config.Password, Config.Host, Config.Port))
+		if _, err = db.Exec(sql); err != nil {
 			fmt.Printf("创建数据库失败: %v", err)
 			panic(err)
 		}
