@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/abelpx/go-migrate/pkg/lib/mysql"
+	"github.com/abelpx/go-migrate/pkg/lib/postgres"
 	"github.com/abelpx/go-migrate/pkg/template"
 	"github.com/spf13/cobra"
 	"golang.org/x/text/cases"
@@ -90,8 +91,8 @@ func initializeDriver() {
 		// TODO: 后续添加 sqlite3 支持
 		log.Fatalf("sqlite3 support not implemented")
 	case "postgres":
-		// TODO: 后续添加 postgres 支持
-		log.Fatalf("postgres support not implemented")
+		postgres.NewDriver(Config.Username, Config.Password, Config.Host, Config.Port, Config.DbName)
+		Migrate = postgres.InitMigrate()
 	default:
 		log.Fatalf("unsupported database type")
 	}
@@ -284,6 +285,9 @@ func run() error {
 // checkDatabase
 // @Description: 检查数据库是否存在，不存在则创建 TODO 后续需要优化，兼容其他数据的检查逻辑
 func checkDatabase() {
+	if Config.DbType != "mysql" {
+		return
+	}
 	// 初始化数据库
 	sql := fmt.Sprintf(`CREATE DATABASE IF NOT EXISTS %s DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;`, Config.DbName)
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", Config.Username, Config.Password, Config.Host, Config.Port, Config.DbName)

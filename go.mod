@@ -6,6 +6,7 @@ require (
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/laijunbin/go-solve-kit v0.2.1
+	github.com/lib/pq v1.10.9
 	github.com/spf13/cobra v1.8.1
 	golang.org/x/text v0.17.0
 )
